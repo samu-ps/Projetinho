@@ -233,3 +233,99 @@ html {
 .btn-confirmar:hover {
     background: #cc0000;
 }
+
+/* Adicione ao final do arquivo */
+.dropdown-armario {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.dropdown-content {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    margin-top: 5px;
+    gap: 5px;
+}
+
+.dropdown-item {
+    background: #f0f0f0;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+    background: #e0e0e0;
+}
+
+.form-card {
+    background: #f5f6fa;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 32px 24px;
+    max-width: 400px;
+    margin: 40px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-card h1 {
+    color: #2d3a4b;
+    font-family: 'League Spartan', sans-serif;
+    font-weight: 700;
+    margin-bottom: 24px;
+    font-size: 2rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+.form-control {
+    padding: 10px 14px;
+    border: 1px solid #d1d9e6;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: inherit;
+    background: #fff;
+    color: #2d3a4b;
+    transition: border 0.2s;
+}
+
+.form-control:focus {
+    border-color: #4a90e2;
+    outline: none;
+}
+
+.botoes {
+    margin-top: 24px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-danger {
+    background: #4a90e2;
+    color: #fff;
+    border: none;
+    padding: 10px 32px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-danger:hover {
+    background: #357ab8;
+}

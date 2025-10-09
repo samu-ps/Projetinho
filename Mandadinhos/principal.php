@@ -7,7 +7,7 @@ session_start();
 //     exit();
 // }
 
-$usuario = $_SESSION['user'];
+
 ?>
 
 
@@ -30,7 +30,16 @@ $usuario = $_SESSION['user'];
     ?>
     <div class="container">
         <div class="opcoes">
-            <button class="dropdown" id="btnEx">ARMARIO</button>
+            <div class="dropdown-armario">
+                <button class="btnopcoes" id="btnEx">ARMARIOS  ⇩</button>
+                <div class="dropdown-content" id="armarioDropdown" style="display: none;">
+                    <button class="dropdown-item" data-page="armario1.php">Armario 1</button>
+                    <button class="dropdown-item" data-page="armario2.php">Armario 2</button>
+                    <button class="dropdown-item" data-page="armario3.php">Armario 3</button>
+                    <button class="dropdown-item" data-page="armario4.php">Armario 4</button>
+                    <button class="dropdown-item" data-page="armario.php">Cadastrar</button>
+                </div>
+            </div>
             <button class="btnopcoes" id="btn2">SEI LA</button>
 
 
@@ -48,17 +57,22 @@ $usuario = $_SESSION['user'];
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 <script>
     $(document).ready(function() {
-        // Botão Inspeção
+        // Dropdown ARMARIO
         $('#btnEx').click(function() {
-            $('#conteudo').load('armario.php', function(response, status, xhr) {
+            $('#armarioDropdown').slideToggle(200);
+        });
+
+        // Carregar conteúdo das opções do dropdown
+        $('.dropdown-item').click(function() {
+            const page = $(this).data('page');
+            $('#conteudo').load(page, function(response, status, xhr) {
                 if (status == "error") {
-                    $('#conteudo').html('<p>Erro ao carregar Inspeção</p>');
+                    $('#conteudo').html('<p>Erro ao carregar conteúdo</p>');
                 }
             });
         });
-    });
-    $(document).ready(function() {
-        // Botão Inspeção
+
+        // Botão SEI LA
         $('#btn2').click(function() {
             $('#conteudo').load('SeiLa.php', function(response, status, xhr) {
                 if (status == "error") {
@@ -66,24 +80,45 @@ $usuario = $_SESSION['user'];
                 }
             });
         });
-    });
-    const usuarioBtn = document.querySelector('.usuario-btn');
-    const modalSair = document.getElementById('modalSair');
-    const cancelarSair = document.getElementById('cancelarSair');
 
-    usuarioBtn.addEventListener('click', () => {
-        modalSair.style.display = 'flex';
-    });
+        // Modal usuário (mantido)
+        const usuarioBtn = document.querySelector('.usuario-btn');
+        const modalSair = document.getElementById('modalSair');
+        const cancelarSair = document.getElementById('cancelarSair');
 
-    cancelarSair.addEventListener('click', () => {
-        modalSair.style.display = 'none';
-    });
+        usuarioBtn.addEventListener('click', () => {
+            modalSair.style.display = 'flex';
+        });
 
-    // Fechar modal clicando fora da caixa
-    window.addEventListener('click', (e) => {
-        if (e.target === modalSair) {
+        cancelarSair.addEventListener('click', () => {
             modalSair.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modalSair) {
+                modalSair.style.display = 'none';
+            }
+        });
+    });
+    function carregarArmarios() {
+        fetch('http://localhost:8000/armarios')
+            .then(response => response.json())
+            .then(data => {
+                let html = '<h2>Armários</h2><ul>';
+                data.forEach(armario => {
+                    html += `<li>ID: ${armario.id} | Turno: ${armario.turno} | Linha: ${armario.linha}</li>`;
+                });
+                html += '</ul>';
+                document.getElementById('conteudo').innerHTML = html;
+            })
+            .catch(() => {
+                document.getElementById('conteudo').innerHTML = '<p>Erro ao carregar armários.</p>';
+            });
         }
+            // Exemplo: Chame essa função ao clicar em uma opção do dropdown
+    document.querySelector('[data-page="armario1.php"]').addEventListener('click', function(e) {
+        e.preventDefault();
+        carregarArmarios();
     });
 </script>
 

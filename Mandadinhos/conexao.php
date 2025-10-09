@@ -1,6 +1,6 @@
 <?php
 $servidor = 'localhost';
-$banco = 'streparavadb';
+$banco = 'streparava';
 $usuario = 'root';
 $senha = '';
 
@@ -17,8 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['userP'], $_POST['pswP
     $usuario = $_POST['userP'];
     $senha = md5($_POST['pswP']); // Criptografa a senha digitada
 
-    $query = $pdo->query("SELECT * FROM usuarios WHERE nomeUser='$usuario' AND senhaUser='$senha'");
-    $result = $query->fetchAll(PDO::FETCH_ASSOC);
+    // $query = $pdo->query("SELECT * FROM usuarios WHERE nomeUser='$usuario' AND senhaUser='$senha'");
+    // $result = $query->fetchAll(PDO::FETCH_ASSOC);
 
     if (count($result) > 0) {
         $_SESSION['user'] = $usuario; // Salva o usuário na sessão

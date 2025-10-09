@@ -10,28 +10,51 @@
     <!-- <link rel="stylesheet" href="./css/style.css"> -->
 </head>
 <body>
-    
-
-    <div class="mb-3">
-        <div class="form-card">
-            <form action="processa.php" method="POST">
-                <h1>Armário</h1>
-                <div class="input-group">
-                    <input type="text" name="id" class="form-control" placeholder="id" required>
-                    <input type="text" class="form-control" name="id_ferramenta" placeholder="turno" required>
-                    <input type="text" class="form-control" name="quantidade" placeholder="linha" required>
-                    <input type="text" class="form-control" name="data" placeholder="id funcionário" required>
-                    <input type="text" class="form-control" name="quantidade_minima" placeholder="quantidade prevista" required>
-                </div>
-                <div class="botoes">
-                    <button type="submit" class="btn btn-danger" id="entrar">Enviar</button>
-                </div>
-            </form>
-        </div>
+    <div class="form-card">
+        <form id="formArmario">
+            <h1>Armário</h1>
+            <div class="input-group">
+                <input type="number" name="id" class="form-control" placeholder="ID" required>
+                <input type="text" class="form-control" name="turno" placeholder="Turno" required>
+                <input type="text" class="form-control" name="linha" placeholder="Linha" required>
+                <input type="number" class="form-control" name="funcionario_id" placeholder="ID Funcionário">
+                <input type="number" class="form-control" name="qtd_prevista" placeholder="Quantidade Prevista">
+            </div>
+            <div class="botoes">
+                <button type="submit" class="btn btn-danger" id="entrar">Enviar</button>
+            </div>
+        </form>
+        <div id="msgArmario"></div>
     </div>
-    
-    
 </body>
     <script src="JOAO-main/assets/scripr.js"></script>
+    <script>
+document.getElementById('formArmario').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const dados = {
+        id: form.id.value,
+        turno: form.turno.value,
+        linha: form.linha.value,
+        funcionario_id: form.funcionario_id.value || null,
+        qtd_prevista: form.qtd_prevista.value || null
+    };
+    fetch('http://localhost:8000/armarios', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dados)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('msgArmario').innerHTML = '<p style="color:green;">' + data.status + '</p>';
+        form.reset();
+    })
+    .catch(() => {
+        document.getElementById('msgArmario').innerHTML = '<p style="color:red;">Erro ao cadastrar armário.</p>';
+    });
+});
+    </script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script> -->
 </html>
