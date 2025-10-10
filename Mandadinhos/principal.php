@@ -33,10 +33,10 @@ session_start();
             <div class="dropdown-armario">
                 <button class="btnopcoes" id="btnEx">ARMARIOS  ⇩</button>
                 <div class="dropdown-content" id="armarioDropdown" style="display: none;">
-                    <button class="dropdown-item" data-page="armario1.php">Armario 1</button>
-                    <button class="dropdown-item" data-page="armario2.php">Armario 2</button>
-                    <button class="dropdown-item" data-page="armario3.php">Armario 3</button>
-                    <button class="dropdown-item" data-page="armario4.php">Armario 4</button>
+                    <button class="dropdown-item" data-page="armario1.php">Linha 1</button>
+                    <button class="dropdown-item" data-page="armario2.php">Linha 2</button>
+                    <button class="dropdown-item" data-page="armario3.php">Linha 3</button>
+                    <button class="dropdown-item" data-page="armario4.php">Linha 4</button>
                     <button class="dropdown-item" data-page="armario.php">Cadastrar</button>
                 </div>
             </div>
@@ -115,10 +115,68 @@ session_start();
                 document.getElementById('conteudo').innerHTML = '<p>Erro ao carregar armários.</p>';
             });
         }
-            // Exemplo: Chame essa função ao clicar em uma opção do dropdown
+        function carregarArmariosPorLinha(linha) {
+        fetch(`http://localhost:8000/armarios/linha/${linha}`)
+            .then(response => response.json())
+            .then(data => {
+                let html = `<h2>Armários da Linha ${linha}</h2><ul>`;
+                data.forEach(armario => {
+                    html += `<li>ID: ${armario.id} | Turno: ${armario.turno} | Linha: ${armario.linha}</li>`;
+                });
+                html += '</ul>';
+                document.getElementById('conteudo').innerHTML = html;
+            })
+            .catch(() => {
+                document.getElementById('conteudo').innerHTML = '<p>Erro ao carregar armários.</p>';
+            });
+    }
+    function carregarArmariosPorLinhaSeparadoPorTurno(linha) {
+        fetch(`http://localhost:8000/armarios/linha/${linha}`)
+            .then(response => response.json())
+            .then(data => {
+                let matutino = [];
+                let vespertino = [];
+                let noturno = [];
+                data.forEach(armario => {
+                    if (armario.turno.toLowerCase() === 'matutino') matutino.push(armario);
+                    else if (armario.turno.toLowerCase() === 'vespertino') vespertino.push(armario);
+                    else if (armario.turno.toLowerCase() === 'noturno') noturno.push(armario);
+                });
+
+                let html = `<div class="armarios-titulo">Armários da Linha ${linha}</div>`;
+                html += `<div class="armario-turno matutino"><h3>Matutino</h3><ul class="armario-lista">`;
+                matutino.forEach(a => html += `<li><strong>ID:</strong> ${a.id} | <strong>Linha:</strong> ${a.linha}</li>`);
+                html += `</ul></div>`;
+                html += `<div class="armario-turno vespertino"><h3>Vespertino</h3><ul class="armario-lista">`;
+                vespertino.forEach(a => html += `<li><strong>ID:</strong> ${a.id} | <strong>Linha:</strong> ${a.linha}</li>`);
+                html += `</ul></div>`;
+                html += `<div class="armario-turno noturno"><h3>Noturno</h3><ul class="armario-lista">`;
+                noturno.forEach(a => html += `<li><strong>ID:</strong> ${a.id} | <strong>Linha:</strong> ${a.linha}</li>`);
+                html += `</ul></div>`;
+
+                document.getElementById('conteudo').innerHTML = html;
+            })
+            .catch(() => {
+                document.getElementById('conteudo').innerHTML = '<p>Erro ao carregar armários.</p>';
+            });
+    }
+
+    // Substitua os eventos dos botões do dropdown:
     document.querySelector('[data-page="armario1.php"]').addEventListener('click', function(e) {
         e.preventDefault();
-        carregarArmarios();
+        carregarArmariosPorLinhaSeparadoPorTurno('1');
+    });
+    document.querySelector('[data-page="armario2.php"]').addEventListener('click', function(e) {
+        e.preventDefault();
+        carregarArmariosPorLinhaSeparadoPorTurno('2');
+    });
+    document.querySelector('[data-page="armario3.php"]').addEventListener('click', function(e) {
+        e.preventDefault();
+        carregarArmariosPorLinhaSeparadoPorTurno('3');
+    });
+    document.querySelector('[data-page="armario4.php"]').addEventListener('click', function(e) {
+        e.preventDefault();
+        carregarArmariosPorLinhaSeparadoPorTurno('4');
     });
 </script>
 
