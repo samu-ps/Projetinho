@@ -83,3 +83,89 @@ def deletar_armario(id: int):
     cursor.close()
     conn.close()
     return {"status": "Armário deletado com sucesso"}
+
+
+# Endpoints simples para salvar/ler relatórios em um arquivo local (db.txt)
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+REL_FILE = BASE_DIR / "relatorios.jsonl"
+
+
+class Relatorio(BaseModel):
+    texto: str
+
+
+from datetime import datetime
+import json
+import uuid
+
+
+@app.get("/relatorio")
+def get_relatorio():
+    """Retorna lista de relatórios (cada linha é um JSON)."""
+    items = []
+    migrated = False
+    if REL_FILE.exists():
+        with REL_FILE.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except Exception:
+                    # pular linhas inválidas
+                    continue
+                if "id" not in obj:
+                    obj["id"] = str(uuid.uuid4())
+                    migrated = True
+                items.append(obj)
+
+    # se migramos, reescrevemos o arquivo com os ids adicionados
+    if migrated:
+        with REL_FILE.open("w", encoding="utf-8") as f:
+            for it in items:
+                f.write(json.dumps(it, ensure_ascii=False) + "\n")
+
+    return {"relatorios": items}
+
+
+@app.post("/relatorio")
+def post_relatorio(rel: Relatorio):
+    """Recebe JSON {"texto": "..."}, anexa um bloco JSON com timestamp ao arquivo e retorna o item criado."""
+    REL_FILE.parent.mkdir(parents=True, exist_ok=True)
+    item = {"id": str(uuid.uuid4()), "texto": rel.texto.strip(), "timestamp": datetime.utcnow().isoformat()}
+    with REL_FILE.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(item, ensure_ascii=False) + "\n")
+    return {"status": "ok", "item": item}
+
+
+
+@app.delete("/relatorio/{item_id}")
+def delete_relatorio(item_id: str):
+    """Remove o relatório com id == item_id regravando o arquivo sem ele."""
+    if not REL_FILE.exists():
+        return {"status": "not_found"}
+    items = []
+    removed = False
+    with REL_FILE.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+            except Exception:
+                continue
+            if str(obj.get("id")) == str(item_id):
+                removed = True
+                continue
+            items.append(obj)
+
+    # reescrever o arquivo com os itens restantes
+    with REL_FILE.open("w", encoding="utf-8") as f:
+        for it in items:
+            f.write(json.dumps(it, ensure_ascii=False) + "\n")
+
+    return {"status": "deleted" if removed else "not_found"}

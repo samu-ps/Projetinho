@@ -14,7 +14,7 @@
         <form id="formArmario">
             <h1>Armário</h1>
             <div class="input-group">
-                <input type="number" class="form-control" name="id" id="idArmario" placeholder="ID" readonly>
+                <input type="number" class="form-control" name="id" id="idArmario" placeholder="ID" >
                 <input type="text" class="form-control" name="turno" placeholder="Turno" required>
                 <input type="text" class="form-control" name="linha" placeholder="Linha" required>
                 <input type="number" class="form-control" name="funcionario_id" placeholder="ID Funcionário">

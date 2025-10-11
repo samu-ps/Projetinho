@@ -107,4 +107,5 @@ CREATE TABLE `streparava`.`item` (
   `qtd_solicitada` INT NULL,
   `qtd_aprovada` INT NULL,
   `custo` DECIMAL NULL,
-  PRIMARY KEY (`id`));
+  PRIMARY KEY (`id`));teste
+---

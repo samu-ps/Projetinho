@@ -8,7 +8,7 @@ session_start();
 // }
 
 
-?>
+?> 
 
 
 <!DOCTYPE html>
@@ -40,7 +40,7 @@ session_start();
                     <button class="dropdown-item" data-page="armario.php">Cadastrar</button>
                 </div>
             </div>
-            <button class="btnopcoes" id="btn2">SEI LA</button>
+            <button class="btnopcoes" id="btn2">Relatório</button>
 
 
         </div>
@@ -54,7 +54,7 @@ session_start();
     </div>
 </body>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script> -->
 <script>
     $(document).ready(function() {
         // Dropdown ARMARIO
@@ -74,7 +74,7 @@ session_start();
 
         // Botão SEI LA
         $('#btn2').click(function() {
-            $('#conteudo').load('SeiLa.php', function(response, status, xhr) {
+            $('#conteudo').load('relatorio.php', function(response, status, xhr) {
                 if (status == "error") {
                     $('#conteudo').html('<p>Erro ao carregar Inspeção</p>');
                 }
