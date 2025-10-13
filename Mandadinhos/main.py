@@ -18,7 +18,7 @@ def get_connection():
         host="localhost",
         user="root",
         password="",
-        database="streparava"
+        database="streparavadb"
     )
 
 @app.get("/armarios")
@@ -83,6 +83,46 @@ def deletar_armario(id: int):
     cursor.close()
     conn.close()
     return {"status": "Armário deletado com sucesso"}
+
+# Cadastrar ferramentas
+class Ferramenta(BaseModel):
+    nome: str
+    descricao: str
+    vida_util: str
+    qtd_estoque: str
+
+@app.get("/ferramentas")
+def listar_ferramentas():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM ferramentas")
+    ferramentas = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return ferramentas
+
+@app.post("/ferramentas")
+def criar_ferramenta(ferramentas: Ferramenta):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO ferramentas (nome, descricao, vida_util, qtd_estoque) VALUES (%s, %s, %s, %s)",
+        (ferramentas.nome, ferramentas.descricao, ferramentas.vida_util, ferramentas.qtd_estoque)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return {"status": "Armário cadastrado com sucesso"}
+
+@app.delete("/ferramentas/{id}")
+def deletar_ferramenta(id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM ferramentas WHERE id = %s", (id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return {"status": "Ferramenta deletado com sucesso"}
 
 
 # Endpoints simples para salvar/ler relatórios em um arquivo local (db.txt)
@@ -169,3 +209,7 @@ def delete_relatorio(item_id: str):
             f.write(json.dumps(it, ensure_ascii=False) + "\n")
 
     return {"status": "deleted" if removed else "not_found"}
+
+    @app.get("/")
+    def hello():
+        return {"msg": "ok"}

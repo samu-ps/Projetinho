@@ -1,6 +1,6 @@
 <?php
 $servidor = 'localhost';
-$banco = 'streparava';
+$banco = 'streparavadb';
 $usuario = 'root';
 $senha = '';
 

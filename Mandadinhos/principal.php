@@ -8,7 +8,7 @@ session_start();
 // }
 
 
-?> 
+?>
 
 
 <!DOCTYPE html>
@@ -30,8 +30,9 @@ session_start();
     ?>
     <div class="container">
         <div class="opcoes">
+            <button class="btnopcoes" id="btn3">Presset</button>
             <div class="dropdown-armario">
-                <button class="btnopcoes" id="btnEx">ARMARIOS  ⇩</button>
+                <button class="btnopcoes" id="btnEx">ARMARIOS ⇩</button>
                 <div class="dropdown-content" id="armarioDropdown" style="display: none;">
                     <button class="dropdown-item" data-page="armario1.php">Linha 1</button>
                     <button class="dropdown-item" data-page="armario2.php">Linha 2</button>
@@ -41,10 +42,7 @@ session_start();
                 </div>
             </div>
             <button class="btnopcoes" id="btn2">Relatório</button>
-
-
         </div>
-
         <div id="conteudo">
 
             <h2>CONTEÚDO</h2>
@@ -54,7 +52,6 @@ session_start();
     </div>
 </body>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script> -->
 <script>
     $(document).ready(function() {
         // Dropdown ARMARIO
@@ -72,11 +69,19 @@ session_start();
             });
         });
 
-        // Botão SEI LA
+        // Botão Relatório
         $('#btn2').click(function() {
             $('#conteudo').load('relatorio.php', function(response, status, xhr) {
                 if (status == "error") {
-                    $('#conteudo').html('<p>Erro ao carregar Inspeção</p>');
+                    $('#conteudo').html('<p>Erro ao carregar Relatório</p>');
+                }
+            });
+        });
+        //Botão Presset
+        $('#btn3').click(function() {
+            $('#conteudo').load('presset.php', function(response, status, xhr) {
+                if (status == "error") {
+                    $('#conteudo').html('<p>Erro ao carregar Presset</p>');
                 }
             });
         });
@@ -100,8 +105,9 @@ session_start();
             }
         });
     });
+
     function carregarArmarios() {
-        fetch('http://localhost:8000/armarios')
+        fetch('http://localhost:8080/armarios')
             .then(response => response.json())
             .then(data => {
                 let html = '<h2>Armários</h2><ul>';
@@ -114,9 +120,10 @@ session_start();
             .catch(() => {
                 document.getElementById('conteudo').innerHTML = '<p>Erro ao carregar armários.</p>';
             });
-        }
-        function carregarArmariosPorLinha(linha) {
-        fetch(`http://localhost:8000/armarios/linha/${linha}`)
+    }
+
+    function carregarArmariosPorLinha(linha) {
+        fetch(`http://localhost:8080/armarios/linha/${linha}`)
             .then(response => response.json())
             .then(data => {
                 let html = `<h2>Armários da Linha ${linha}</h2><ul>`;
@@ -130,8 +137,9 @@ session_start();
                 document.getElementById('conteudo').innerHTML = '<p>Erro ao carregar armários.</p>';
             });
     }
+
     function carregarArmariosPorLinhaSeparadoPorTurno(linha) {
-        fetch(`http://localhost:8000/armarios/linha/${linha}`)
+        fetch(`http://localhost:8080/armarios/linha/${linha}`)
             .then(response => response.json())
             .then(data => {
                 let matutino = [];

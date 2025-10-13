@@ -1,0 +1,210 @@
+<?php 
+session_start();
+require_once('./conexao.php'); 
+// Criar uma sessão para compartilhar as variaveis de memoria @session_start(); 
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Processar o formulário se enviado
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_once('./conexao.php');
+
+    $nome = $_POST['nome'] ?? null;
+    $descricao = $_POST['descricao'] ?? null;
+    $fabricante = $_POST['fabricante'] ?? null;
+
+    if ($nome) {
+        try {
+            $stmt = $pdo->prepare("INSERT INTO ferramentas (nome, descricao, fabricante) VALUES (:nome, :descricao, :fabricante)");
+            $stmt->execute([
+                ':nome' => $nome,
+                ':descricao' => $descricao,
+                ':fabricante' => $fabricante
+            ]);
+            $mensagem = "Peça cadastrada com sucesso!";
+        } catch (PDOException $e) {
+            $mensagem = "Erro ao cadastrar peça: " . $e->getMessage();
+        }
+    } else {
+        $mensagem = "O nome da peça é obrigatório.";
+    }
+}
+?>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sistema de Estoque - Streparava (Demo)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">Streparava — Controle de Ferramentas</div>
+
+      <nav class="menu">
+        <button id="nav-presset" class="active">PRESSET <span class="count" id="count-presset">0</span></button>
+        <button id="nav-armarios">ARMÁRIOS <span class="count" id="count-armarios">6</span></button>
+        <button id="nav-cadastro">CADASTRO</button>
+      </nav>
+
+      <div style="margin-top:18px;font-size:13px;line-height:1.4">
+        <div class="muted">Instruções rápidas:</div>
+        <ul style="padding-left:18px;margin:8px 0">
+          <li>Use a aba PRESSET para ver e ajustar o estoque geral.</li>
+          <li>ARMÁRIOS mostra os 6 armários (1 por linha) e as 3 gavetas por turno.</li>
+          <li>Toda retirada em um armário registra movimento e atualiza o Presset.</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="header">
+        <div class="title">Painel de Controle — Streparava</div>
+        <div class="small muted">Demo local — dados fictícios | Salva no navegador</div>
+      </div>
+
+      <div id="view-presset" class="card">
+        <h3>PRESSET — Estoque Geral</h3>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;max-width:87%;">
+          <div style="flex:1">
+            <div class="muted">Pesquisar peça</div>
+            <input id="presset-search" placeholder="Digite nome da peça..." style="width:100%" />
+          </div>
+          <div style="width:220px">
+            <div class="muted">Ajustar peça (adicionar/retirar)</div>
+            <div style="display:flex;gap:8px">
+              <select id="presset-select" style="flex:1"></select>
+              <input id="presset-qty" type="number" value="1" min="1" style="width:90px" />
+              <button class="btn-primary" id="presset-add">ADICIONAR</button>
+              <button class="btn-danger" id="presset-remove">RETIRAR</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:16px">
+          <div style="flex:1">
+            <div class="muted">Lista de peças no Presset</div>
+            <table id="presset-table">
+              <thead><tr><th>Peça</th><th>Qtd</th><th>Un.</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <aside style="width:380px">
+            <div class="muted">Movimentações recentes</div>
+            <div id="log" class="log"></div>
+          </aside>
+        </div>
+      </div>
+
+      <div id="view-armarios" class="card" style="margin-top:14px;display:none">
+        <h3>ARMÁRIOS — Linhas de Produção</h3>
+        <div class="tabs" id="armario-tabs"></div>
+
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="flex:1">
+            <div class="muted">Gavetas (turnos) e conteúdo</div>
+            <table id="armario-table">
+              <thead><tr><th>Gaveta (Turno)</th><th>Peça</th><th>Qtd</th><th>Ações</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div style="width:320px">
+            <div class="muted">Ações na gaveta selecionada</div>
+            <div class="card" style="padding:10px">
+              <div class="form-row">
+                <select id="armario-piece" style="flex:1"></select>
+                <input id="armario-qty" type="number" value="1" min="1" style="width:80px" />
+              </div>
+              <div class="form-row">
+                <button class="btn-primary" id="to-armario">ADICIONAR À GAVETA</button>
+                <button class="btn-danger" id="from-armario">RETIRAR DA GAVETA</button>
+              </div>
+              <div class="muted small" style="margin-top:8px">Gaveta atual: <span id="current-gaveta">-</span></div>
+            </div>
+
+            <div style="margin-top:12px">
+              <div class="muted">Resumo do armário</div>
+              <div id="armario-summary" style="margin-top:8px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-cadastro" class="card" style="margin-top:14px;display:none">
+        <h3>CADASTRO</h3>
+        <div style="display:flex;gap:12px">
+          <div style="flex:1">
+            <div class="muted">Adicionar nova peça</div>
+            <div class="form">
+              <form action="/ferramentas" method="POST" id="formFerramenta">
+                <input id="new-piece-name" name="nome" placeholder="Nome da peça" style="flex:1" />
+                <input id="new-piece-unit" name="unit" placeholder="Unidade (ex: un, pct)" style="width:120px" />
+                <input id="new-piece-desc" name="descricao" placeholder="Descrição da peça" style="flex:1;">
+                <input id="new-piece-fabr" name="fabricante" placeholder="Fabricante da peça" style="flex:1;">
+              </form>
+            </div>
+            <div><button class="btn-primary" id="add-piece">ADICIONAR PEÇA</button></div>
+
+            <hr />
+            <div class="muted">Cadastrar funcionário / máquina / fornecedor (demo)</div>
+            <div class="form-row">
+              <input id="new-func" placeholder="Nome funcionário" style="flex:1" />
+              <button class="btn-primary" id="add-func">CADASTRAR</button>
+            </div>
+            <div style="margin-top:6px">
+              <input id="new-mach" placeholder="Máquina" style="flex:1" />
+              <button class="btn-primary" id="add-mach">CADASTRAR</button>
+            </div>
+            <div style="margin-top:6px">
+              <input id="new-fp" placeholder="Fornecedor" style="flex:1" />
+              <button class="btn-primary" id="add-sup">CADASTRAR</button>
+            </div>
+          </div>
+
+          <div style="width:320px">
+            <div class="muted">Listas cadastradas</div>
+            <div style="margin-top:8px" id="lists"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="mensagem">
+        <?php if (isset($mensagem)) echo "<p>$mensagem</p>"; ?>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    document.getElementById('formFerramenta').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const dados = {
+            nome: form.nome.value,
+            descricao: form.descricao.value || null,
+            fabricante: form.fabricante.value || null
+        };
+        fetch('http://localhost:8000/armarios', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dados)
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('mensagem').innerHTML = '<p style="color:green;">' + data.status + '</p>';
+        })
+        .catch(() => {
+            document.getElementById('mensagem').innerHTML = '<p style="color:red;">Erro ao cadastrar peça.</p>';
+        });
+    });
+  </script>
+</body>
+</html>
