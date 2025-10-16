@@ -77,7 +77,8 @@
     }
     .title{
         font-size:20px;
-        font-weight:700
+        font-weight:700;
+        justify-content: spca;
     }
     .card{
         background:var(--white)

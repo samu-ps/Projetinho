@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import mysql.connector
+from fastapi import HTTPException
+
 
 app = FastAPI()
 
@@ -44,52 +46,14 @@ def listar_armarios_por_linha(linha: str):
 # Exemplo para cadastrar um armário
 from pydantic import BaseModel
 
-class Armario(BaseModel):
-    turno: str
-    linha: str
-    funcionario_id: int = None
-    qtd_prevista: int = None
-
-@app.post("/armarios")
-def criar_armario(armario: Armario):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO armario (turno, linha, funcionario_id, qtd_prevista) VALUES (%s, %s, %s, %s)",
-        (armario.turno, armario.linha, armario.funcionario_id, armario.qtd_prevista)
-    )
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return {"status": "Armário cadastrado com sucesso"}
-
-@app.get("/armarios/ultimo_id")
-def ultimo_id_armario():
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT MAX(id) FROM armario")
-    ultimo_id = cursor.fetchone()[0]
-    cursor.close()
-    conn.close()
-    proximo_id = (ultimo_id or 0) + 1
-    return {"proximo_id": proximo_id}
-
-@app.delete("/armarios/{id}")
-def deletar_armario(id: int):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM armario WHERE id = %s", (id,))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return {"status": "Armário deletado com sucesso"}
-
 # Cadastrar ferramentas
 class Ferramenta(BaseModel):
     nome: str
     descricao: str
     vida_util: str
-    qtd_estoque: str
+    qtd_estoque: int
+class FerramentaUpdate(BaseModel):
+    qtd_estoque: int
 
 @app.get("/ferramentas")
 def listar_ferramentas():
@@ -123,6 +87,21 @@ def deletar_ferramenta(id: int):
     cursor.close()
     conn.close()
     return {"status": "Ferramenta deletado com sucesso"}
+
+# Rota para atualizar a quantidade em estoque
+@app.put("/ferramentas/{id}")
+def atualizar_qtd_estoque(id: int, dados: FerramentaUpdate):
+    conn = get_connection()
+    cursor = conn.cursor()
+    query = "UPDATE ferramentas SET qtd_estoque = %s WHERE id = %s"
+    valores = (dados.qtd_estoque, id)
+    cursor.execute(query, valores)
+    conn.commit()
+    if cursor.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Ferramenta não encontrada")
+    cursor.close()
+    conn.close()
+    return {"mensagem": "Quantidade de estoque atualizada com sucesso"}
 
 
 # Endpoints simples para salvar/ler relatórios em um arquivo local (db.txt)
@@ -209,7 +188,3 @@ def delete_relatorio(item_id: str):
             f.write(json.dumps(it, ensure_ascii=False) + "\n")
 
     return {"status": "deleted" if removed else "not_found"}
-
-    @app.get("/")
-    def hello():
-        return {"msg": "ok"}

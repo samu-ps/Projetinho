@@ -34,11 +34,13 @@ session_start();
             <div class="dropdown-armario">
                 <button class="btnopcoes" id="btnEx">ARMARIOS ⇩</button>
                 <div class="dropdown-content" id="armarioDropdown" style="display: none;">
-                    <button class="dropdown-item" data-page="armario1.php">Linha 1</button>
-                    <button class="dropdown-item" data-page="armario2.php">Linha 2</button>
-                    <button class="dropdown-item" data-page="armario3.php">Linha 3</button>
-                    <button class="dropdown-item" data-page="armario4.php">Linha 4</button>
-                    <button class="dropdown-item" data-page="armario.php">Cadastrar</button>
+                    <button class="dropdown-item" data-page="armarios/armario1.php">Linha 1</button>
+                    <button class="dropdown-item" data-page="armarios/armario2.php">Linha 2</button>
+                    <button class="dropdown-item" data-page="armarios/armario3.php">Linha 3</button>
+                    <button class="dropdown-item" data-page="armarios/armario4.php">Linha 4</button>
+                    <button class="dropdown-item" data-page="armarios/armario5.php">Linha 5</button>
+                    <button class="dropdown-item" data-page="armarios/armario6.php">Linha 6</button>
+                    <button class="dropdown-item" data-page="cadastros.php">Cadastrar</button>
                 </div>
             </div>
             <button class="btnopcoes" id="btn2">Relatório</button>
@@ -82,11 +84,13 @@ session_start();
             $('#conteudo').load('presset.php', function(response, status, xhr) {
                 if (status == "error") {
                     $('#conteudo').html('<p>Erro ao carregar Presset</p>');
+                    // carregar(); // Recarrega os dados do backend
                 }
             });
         });
 
-        // Modal usuário (mantido)
+
+        // Modal usuário (mantid)
         const usuarioBtn = document.querySelector('.usuario-btn');
         const modalSair = document.getElementById('modalSair');
         const cancelarSair = document.getElementById('cancelarSair');
@@ -152,13 +156,41 @@ session_start();
                 });
 
                 let html = `<div class="armarios-titulo">Armários da Linha ${linha}</div>`;
-                html += `<div class="armario-turno matutino"><h3>Matutino</h3><ul class="armario-lista">`;
+                html += `
+                <div class="armario-turno matutino"><h3>Matutino</h3><ul class="armario-lista">
+                <div class="muted" style="display:flex; gap:8px; justify-content:flex-end; align-items:center;">Ajustar peça (adicionar/retirar)</div>
+                <div style="display:flex; gap:8px; justify-content:flex-end; align-items:center;">
+                    <div style="display:flex;gap:8px">
+                        <select id="presset-select" style="flex:1"></select>
+                        <input id="presset-qty" type="number" value="1" min="1" style="width:90px" />
+                        <button class="btn-primary" id="presset-add">ADICIONAR</button>
+                        <button class="btn-danger" id="presset-remove">RETIRAR</button>
+                    </div>
+                </div>`;
                 matutino.forEach(a => html += `<li><strong>ID:</strong> ${a.id} | <strong>Linha:</strong> ${a.linha}</li>`);
                 html += `</ul></div>`;
-                html += `<div class="armario-turno vespertino"><h3>Vespertino</h3><ul class="armario-lista">`;
+                html += `<div class="armario-turno vespertino"><h3>Vespertino</h3><ul class="armario-lista">
+                <div class="muted" style="display:flex; gap:8px; justify-content:flex-end; align-items:center;">Ajustar peça (adicionar/retirar)</div>
+                <div style="display:flex; gap:8px; justify-content:flex-end; align-items:center;">
+                    <div style="display:flex;gap:8px">
+                        <select id="presset-select" style="flex:1"></select>
+                        <input id="presset-qty" type="number" value="1" min="1" style="width:90px" />
+                        <button class="btn-primary" id="presset-add">ADICIONAR</button>
+                        <button class="btn-danger" id="presset-remove">RETIRAR</button>
+                    </div>
+                </div>`;
                 vespertino.forEach(a => html += `<li><strong>ID:</strong> ${a.id} | <strong>Linha:</strong> ${a.linha}</li>`);
                 html += `</ul></div>`;
-                html += `<div class="armario-turno noturno"><h3>Noturno</h3><ul class="armario-lista">`;
+                html += `<div class="armario-turno noturno"><h3>Noturno</h3><ul class="armario-lista">
+                <div class="muted" style="display:flex; gap:8px; justify-content:flex-end; align-items:center;">Ajustar peça (adicionar/retirar)</div>
+                <div style="display:flex; gap:8px; justify-content:flex-end; align-items:center;">
+                    <div style="display:flex;gap:8px">
+                        <select id="presset-select" style="flex:1"></select>
+                        <input id="presset-qty" type="number" value="1" min="1" style="width:90px" />
+                        <button class="btn-primary" id="presset-add">ADICIONAR</button>
+                        <button class="btn-danger" id="presset-remove">RETIRAR</button>
+                    </div>
+                </div>`;
                 noturno.forEach(a => html += `<li><strong>ID:</strong> ${a.id} | <strong>Linha:</strong> ${a.linha}</li>`);
                 html += `</ul></div>`;
 
@@ -170,21 +202,29 @@ session_start();
     }
 
     // Substitua os eventos dos botões do dropdown:
-    document.querySelector('[data-page="armario1.php"]').addEventListener('click', function(e) {
+    document.querySelector('[data-page="armarios/armario1.php"]').addEventListener('click', function(e) {
         e.preventDefault();
         carregarArmariosPorLinhaSeparadoPorTurno('1');
     });
-    document.querySelector('[data-page="armario2.php"]').addEventListener('click', function(e) {
+    document.querySelector('[data-page="armarios/armario2.php"]').addEventListener('click', function(e) {
         e.preventDefault();
         carregarArmariosPorLinhaSeparadoPorTurno('2');
     });
-    document.querySelector('[data-page="armario3.php"]').addEventListener('click', function(e) {
+    document.querySelector('[data-page="armarios/armario3.php"]').addEventListener('click', function(e) {
         e.preventDefault();
         carregarArmariosPorLinhaSeparadoPorTurno('3');
     });
-    document.querySelector('[data-page="armario4.php"]').addEventListener('click', function(e) {
+    document.querySelector('[data-page="armarios/armario4.php"]').addEventListener('click', function(e) {
         e.preventDefault();
         carregarArmariosPorLinhaSeparadoPorTurno('4');
+    });
+    document.querySelector('[data-page="armarios/armario5.php"]').addEventListener('click', function(e) {
+        e.preventDefault();
+        carregarArmariosPorLinhaSeparadoPorTurno('5');
+    });
+    document.querySelector('[data-page="armarios/armario6.php"]').addEventListener('click', function(e) {
+        e.preventDefault();
+        carregarArmariosPorLinhaSeparadoPorTurno('6');
     });
 </script>
 
