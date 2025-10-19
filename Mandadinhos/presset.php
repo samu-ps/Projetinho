@@ -93,7 +93,6 @@
                     <tbody></tbody>
                 </table>
             </div>
-
             <aside style="width:380px">
                 <div class="muted">Movimentações recentes</div>
                 <div id="log" class="log"></div>
@@ -103,28 +102,28 @@
 
     <script>
         window.dadosPresset = window.dadosPresset || [];
-        // Função principal de carregamento
+
         async function carregar() {
             // tenta pegar do cache
             const cache = sessionStorage.getItem("presset_cache");
             if (cache) {
-                dadosPresset = JSON.parse(cache);
+                window.dadosPresset = JSON.parse(cache);
                 preencherTabela(dadosPresset);
                 preencherSelect(dadosPresset);
             }
+
             // atualiza com o backend
             const res = await fetch('http://localhost:8080/ferramentas');
-            if (!res.ok) {
-                console.error("Erro no fetch:", res.status); // Log no console do navegador
-                if (res.ok) {
-                    const novosDados = await res.json();
-                    if (novosDados.length > 0 || !cache) { // Só atualiza se há dados novos ou sem cache
-                        dadosPresset = novosDados;
-                        preencherTabela(dadosPresset);
-                        preencherSelect(dadosPresset);
-                        sessionStorage.setItem("presset_cache", JSON.stringify(dadosPresset));
-                    }
+            if (res.ok) {
+                const novosDados = await res.json();
+                if (novosDados.length > 0 || !cache) {
+                    window.dadosPresset = novosDados;
+                    preencherTabela(dadosPresset);
+                    preencherSelect(dadosPresset);
+                    sessionStorage.setItem("presset_cache", JSON.stringify(dadosPresset));
                 }
+            } else {
+                console.error("Erro no fetch:", res.status);
             }
         }
 
@@ -144,7 +143,7 @@
 
         function preencherSelect(dados) {
             const select = document.getElementById("presset-select");
-            select.innerHTML = ""
+            select.innerHTML = "";
             dados.forEach(c => {
                 const option = document.createElement("option");
                 option.value = c.id;
@@ -173,7 +172,6 @@
             });
 
             if (res.ok) {
-                // Atualiza cache local
                 sessionStorage.setItem("presset_cache", JSON.stringify(dadosPresset));
                 registrarLog(item.nome, delta);
             } else {
@@ -181,7 +179,6 @@
             }
         }
 
-        // Mostrar histórico no painel lateral
         function registrarLog(nome, delta) {
             const log = document.getElementById("log");
             const op = delta > 0 ? "Adicionado" : "Retirado";
@@ -190,19 +187,20 @@
             log.prepend(div);
         }
 
-        // Eventos
-        document.getElementById("presset-add").addEventListener("click", () => {
-            const id = document.getElementById("presset-select").value;
-            const qtd = parseInt(document.getElementById("presset-qty").value);
-            atualizarQuantidade(id, qtd);
+        // --- Delegação de eventos (não duplica listeners) ---
+        document.getElementById("view-presset").addEventListener("click", e => {
+            if (e.target.id === "presset-add") {
+                const id = document.getElementById("presset-select").value;
+                const qtd = parseInt(document.getElementById("presset-qty").value);
+                atualizarQuantidade(id, qtd);
+            } else if (e.target.id === "presset-remove") {
+                const id = document.getElementById("presset-select").value;
+                const qtd = parseInt(document.getElementById("presset-qty").value);
+                atualizarQuantidade(id, -qtd);
+            }
         });
 
-        document.getElementById("presset-remove").addEventListener("click", () => {
-            const id = document.getElementById("presset-select").value;
-            const qtd = parseInt(document.getElementById("presset-qty").value);
-            atualizarQuantidade(id, -qtd);
-        });
-
+        // Inicializa
         carregar();
     </script>
 </body>

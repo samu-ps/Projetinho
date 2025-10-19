@@ -1,28 +1,72 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import mysql.connector
-from fastapi import HTTPException
+from pathlib import Path
+from datetime import datetime
+import json
+import uuid
 
+# -----------------------------
+# Configuração FastAPI e CORS
+# -----------------------------
+app = FastAPI(title="Gestão de Armários e Ferramentas")
 
-app = FastAPI()
-
-# Permitir requisições do seu site
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Troque por seu domínio em produção
+    allow_origins=["*"],  # Para teste; trocar para seu domínio em produção
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# -----------------------------
+# Conexão MySQL
+# -----------------------------
 def get_connection():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="",
+        password="",  # sua senha
         database="streparavadb"
     )
 
+# -----------------------------
+# Models
+# -----------------------------
+class Armario(BaseModel):
+    turno: str
+    linha: str
+    funcionario_id: int = None
+    qtd_prevista: int = None
+
+class Ferramenta(BaseModel):
+    nome: str
+    descricao: str
+    vida_util: str
+    qtd_estoque: int
+
+
+class FerramentaUpdate(BaseModel):
+    qtd_estoque: int
+
+class FerramentaTransfer(BaseModel):
+    nome: str
+    id_ferramenta: int
+    linha: str
+    qtd_transferida: int
+    turno: str
+
+class Relatorio(BaseModel):
+    texto: str
+
+# Arquivo de relatórios
+BASE_DIR = Path(__file__).resolve().parent
+REL_FILE = BASE_DIR / "relatorios.jsonl"
+
+# -----------------------------
+# Rotas Armários
+# -----------------------------
 @app.get("/armarios")
 def listar_armarios():
     conn = get_connection()
@@ -34,27 +78,92 @@ def listar_armarios():
     return armarios
 
 @app.get("/armarios/linha/{linha}")
-def listar_armarios_por_linha(linha: str):
+def get_armarios_por_linha(linha: str):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM armario WHERE linha = %s", (linha,))
-    armarios = cursor.fetchall()
+
+    # Busca os armários e as ferramentas associadas
+    cursor.execute("""
+        SELECT 
+            a.id AS armario_id,
+            a.linha,
+            a.turno,
+            a.qtd_estoque AS qtd_armario,
+            f.id AS ferramenta_id,
+            f.nome AS ferramenta_nome,
+            f.qtd_estoque AS qtd_total_ferramenta
+        FROM armario a
+        LEFT JOIN ferramentas f ON a.id_ferramenta = f.id
+        WHERE a.linha = %s
+        ORDER BY a.turno;
+    """, (linha,))
+
+    registros = cursor.fetchall()
+
+    # Agrupar por turno
+    armarios = {}
+    for r in registros:
+        turno = r["turno"] or "Desconhecido"
+        if turno not in armarios:
+            armarios[turno] = []
+
+        armarios[turno].append({
+            "id": r["armario_id"],
+            "linha": r["linha"],
+            "turno": r["turno"],
+            "ferramentas": [{
+                "id": r["ferramenta_id"],
+                "nome": r["ferramenta_nome"],
+                "qtd_estoque": r["qtd_armario"]
+            }]
+        })
+
     cursor.close()
     conn.close()
-    return armarios
 
-# Exemplo para cadastrar um armário
-from pydantic import BaseModel
+    # Retornar como lista (o frontend espera isso)
+    resultado = []
+    for turno, dados in armarios.items():
+        resultado.extend(dados)
 
-# Cadastrar ferramentas
-class Ferramenta(BaseModel):
-    nome: str
-    descricao: str
-    vida_util: str
-    qtd_estoque: int
-class FerramentaUpdate(BaseModel):
-    qtd_estoque: int
+    return resultado
 
+@app.get("/armarios/ultimo_id")
+def ultimo_id_armario():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT MAX(id) FROM armario")
+    ultimo_id = cursor.fetchone()[0]
+    cursor.close()
+    conn.close()
+    return {"proximo_id": (ultimo_id or 0) + 1}
+
+# @app.post("/armarios")
+# def criar_armario(armario: Armario):
+#     conn = get_connection()
+#     cursor = conn.cursor()
+#     cursor.execute(
+#         "INSERT INTO armario (turno, linha, funcionario_id, qtd_prevista) VALUES (%s, %s, %s, %s)",
+#         (armario.turno, armario.linha, armario.funcionario_id, armario.qtd_prevista)
+#     )
+#     conn.commit()
+#     cursor.close()
+#     conn.close()
+#     return {"status": "Armário cadastrado com sucesso"}
+
+@app.delete("/armarios/{id}")
+def deletar_armario(id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM armario WHERE id = %s", (id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return {"status": "Armário deletado com sucesso"}
+
+# -----------------------------
+# Rotas Ferramentas
+# -----------------------------
 @app.get("/ferramentas")
 def listar_ferramentas():
     conn = get_connection()
@@ -66,17 +175,17 @@ def listar_ferramentas():
     return ferramentas
 
 @app.post("/ferramentas")
-def criar_ferramenta(ferramentas: Ferramenta):
+def criar_ferramenta(ferramenta: Ferramenta):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO ferramentas (nome, descricao, vida_util, qtd_estoque) VALUES (%s, %s, %s, %s)",
-        (ferramentas.nome, ferramentas.descricao, ferramentas.vida_util, ferramentas.qtd_estoque)
+        (ferramenta.nome, ferramenta.descricao, ferramenta.vida_util, ferramenta.qtd_estoque)
     )
     conn.commit()
     cursor.close()
     conn.close()
-    return {"status": "Armário cadastrado com sucesso"}
+    return {"status": "Ferramenta cadastrada com sucesso"}
 
 @app.delete("/ferramentas/{id}")
 def deletar_ferramenta(id: int):
@@ -86,43 +195,78 @@ def deletar_ferramenta(id: int):
     conn.commit()
     cursor.close()
     conn.close()
-    return {"status": "Ferramenta deletado com sucesso"}
+    return {"status": "Ferramenta deletada com sucesso"}
 
-# Rota para atualizar a quantidade em estoque
 @app.put("/ferramentas/{id}")
 def atualizar_qtd_estoque(id: int, dados: FerramentaUpdate):
     conn = get_connection()
     cursor = conn.cursor()
-    query = "UPDATE ferramentas SET qtd_estoque = %s WHERE id = %s"
-    valores = (dados.qtd_estoque, id)
-    cursor.execute(query, valores)
+    cursor.execute("UPDATE ferramentas SET qtd_estoque = %s WHERE id = %s", (dados.qtd_estoque, id))
     conn.commit()
     if cursor.rowcount == 0:
+        cursor.close()
+        conn.close()
         raise HTTPException(status_code=404, detail="Ferramenta não encontrada")
     cursor.close()
     conn.close()
     return {"mensagem": "Quantidade de estoque atualizada com sucesso"}
 
+# -----------------------------
+# Transferência Presset -> Armário
+# -----------------------------
+@app.post("/transferir_presset_para_armario")
+def transferir_presset_para_armario(dados: FerramentaTransfer):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-# Endpoints simples para salvar/ler relatórios em um arquivo local (db.txt)
-from pathlib import Path
+    # 1️⃣ Buscar ferramenta
+    cursor.execute("SELECT * FROM ferramentas WHERE id = %s", (dados.id_ferramenta,))
+    ferramenta = cursor.fetchone()
+    if not ferramenta:
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=404, detail=f"Ferramenta com ID {dados.id_ferramenta} não encontrada")
 
-BASE_DIR = Path(__file__).resolve().parent
-REL_FILE = BASE_DIR / "relatorios.jsonl"
+    # 2️⃣ Verificar se já existe no armário (mesma linha + turno + ferramenta)
+    cursor.execute("""
+        SELECT * FROM armario
+        WHERE linha = %s AND turno = %s AND id_ferramenta = %s
+    """, (dados.linha, dados.turno, dados.id_ferramenta))
+    existente = cursor.fetchone()
 
+    if existente:
+        # Atualiza quantidade e nome (caso tenha mudado)
+        cursor.execute("""
+            UPDATE armario
+            SET qtd_estoque = qtd_estoque + %s, nome = %s
+            WHERE id = %s
+        """, (dados.qtd_transferida, dados.nome, existente["id"]))
+    else:
+        # Cria novo registro no armário
+        cursor.execute("""
+            INSERT INTO armario (id_ferramenta, nome, linha, turno, qtd_estoque)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (dados.id_ferramenta, dados.nome, dados.linha, dados.turno, dados.qtd_transferida))
 
-class Relatorio(BaseModel):
-    texto: str
+    # 3️⃣ Atualizar estoque da tabela ferramentas
+    cursor.execute("""
+        UPDATE ferramentas
+        SET qtd_estoque = qtd_estoque - %s
+        WHERE id = %s
+    """, (dados.qtd_transferida, dados.id_ferramenta))
 
+    conn.commit()
+    cursor.close()
+    conn.close()
 
-from datetime import datetime
-import json
-import uuid
-
-
+    return {
+        "mensagem": f"Ferramenta '{dados.nome}' transferida com sucesso para o armário da linha {dados.linha} ({dados.turno})!"
+    }
+# -----------------------------
+# Rotas de Relatórios (arquivo JSON)
+# -----------------------------
 @app.get("/relatorio")
 def get_relatorio():
-    """Retorna lista de relatórios (cada linha é um JSON)."""
     items = []
     migrated = False
     if REL_FILE.exists():
@@ -134,36 +278,27 @@ def get_relatorio():
                 try:
                     obj = json.loads(line)
                 except Exception:
-                    # pular linhas inválidas
                     continue
                 if "id" not in obj:
                     obj["id"] = str(uuid.uuid4())
                     migrated = True
                 items.append(obj)
-
-    # se migramos, reescrevemos o arquivo com os ids adicionados
     if migrated:
         with REL_FILE.open("w", encoding="utf-8") as f:
             for it in items:
                 f.write(json.dumps(it, ensure_ascii=False) + "\n")
-
     return {"relatorios": items}
-
 
 @app.post("/relatorio")
 def post_relatorio(rel: Relatorio):
-    """Recebe JSON {"texto": "..."}, anexa um bloco JSON com timestamp ao arquivo e retorna o item criado."""
     REL_FILE.parent.mkdir(parents=True, exist_ok=True)
     item = {"id": str(uuid.uuid4()), "texto": rel.texto.strip(), "timestamp": datetime.utcnow().isoformat()}
     with REL_FILE.open("a", encoding="utf-8") as f:
         f.write(json.dumps(item, ensure_ascii=False) + "\n")
     return {"status": "ok", "item": item}
 
-
-
 @app.delete("/relatorio/{item_id}")
 def delete_relatorio(item_id: str):
-    """Remove o relatório com id == item_id regravando o arquivo sem ele."""
     if not REL_FILE.exists():
         return {"status": "not_found"}
     items = []
@@ -181,10 +316,7 @@ def delete_relatorio(item_id: str):
                 removed = True
                 continue
             items.append(obj)
-
-    # reescrever o arquivo com os itens restantes
     with REL_FILE.open("w", encoding="utf-8") as f:
         for it in items:
             f.write(json.dumps(it, ensure_ascii=False) + "\n")
-
     return {"status": "deleted" if removed else "not_found"}

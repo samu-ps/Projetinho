@@ -46,7 +46,7 @@ body {
     /* Overlay + image: change --bg-overlay to control darkness (0 = transparent, 1 = opaque)
        e.g. :root { --bg-overlay: 0.4; } */
     --bg-overlay: 0.35;
-    background-image: linear-gradient(rgba(255,255,255,var(--bg-overlay)), rgba(255,255,255,var(--bg-overlay))), url('../img/fundo.png');
+    /* background-image: linear-gradient(rgba(255,255,255,var(--bg-overlay)), rgba(255,255,255,var(--bg-overlay))), url('../img/fundo.png'); */
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
