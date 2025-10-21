@@ -12,7 +12,7 @@ html {
     font-family: "League Spartan" !important;
     letter-spacing: 1px !important;
     width: 100vw !important;
-    overflow: hidden !important;  
+    /* overflow: hidden !important;   */
 }
 
 .logo {

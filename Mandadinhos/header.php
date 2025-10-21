@@ -6,7 +6,7 @@
     <div class="header-right">
         <span class="bemvindo">
             <span class="saudacao">Bem-vindo,</span>
-            <!-- <strong><?php echo htmlspecialchars($usuario); ?></strong> -->
+            <strong><?php echo htmlspecialchars($usuario); ?></strong>
             <button class="usuario-btn">
                 <img src="./img/Helik.png" alt="" width="40px" >
             </button>
