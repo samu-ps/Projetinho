@@ -41,9 +41,19 @@ if (!isset($_SESSION['user'])) {
         <div id="conteudo">
         </div>
     </div>
+    <div id="modalErro" class="modal" style="display:none;">
+        <div class="modal-content" style="text-align:center;">
+            <h3>Erro</h3>
+            <p id="msgErro">Quantidade indisponível!</p>
+            <button id="btnOkErro" class="btn-primary" style="margin-top:10px;">OK</button>
+        </div>
+    </div>
 </body>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="./scripts/principal.js"></script>
+<script>
+
+</script>
 
 </html>

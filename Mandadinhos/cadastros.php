@@ -28,26 +28,6 @@
         </div>
     </div>
 
-    <div>
-        <div style="max-width: 500px; width: 100%;">
-            <div>
-            </div>
-            <form action="./registrar.php" method="POST" autocomplete="off">
-                <div>
-                    <label for="nome" class="form-label">login</label>
-                    <input type="text" name="login" id="nome" class="form-control text-uppercase" placeholder="login" required>
-                </div>
-                <div>
-                    <label for="senha" class="form-label">Senha</label>
-                    <input type="password" name="senha" id="senha" class="form-control" placeholder="Senha" required maxlength="20">
-                </div>
-                <div>
-                    <button type="submit">Cadastrar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
 </body>
 
 </html>

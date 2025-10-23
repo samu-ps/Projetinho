@@ -1,173 +1,116 @@
- $(document).ready(function() {
+$(document).ready(function() {
 
-        // --- CARREGAR PRESSET AO INICIAR ---
+    // --- CARREGAR PRESSET AO INICIAR ---
+    $('#conteudo').load('presset.php', function(response, status) {
+        if (status === "error") {
+            $('#conteudo').html('<p>Erro ao carregar Presset</p>');
+            return;
+        }
+        if (typeof carregar === "function") {
+            carregar();
+        }
+    });
+
+    // Eventos de clique dos botões
+    $('#btnEx').click(() => $('#armarioDropdown').slideToggle(200));
+    $('.dropdown-item').click(function() {
+        const page = $(this).data('page');
+        const match = page.match(/armario(\d+)\.php/);
+        const linha = match ? match[1] : null;
+        $('#conteudo').load(page, (response, status) => {
+            if (status === "error") {
+                $('#conteudo').html('<p>Erro ao carregar conteúdo</p>');
+                return;
+            }
+            if (linha) carregarArmariosPorLinhaSeparadoPorTurno(linha);
+        });
+    });
+    $('#btn2').click(() => $('#conteudo').load('relatorio.php'));
+    $('#btn4').click(() => $('#conteudo').load('cadastros.php'));
+    $('#btn3').click(() => {
         $('#conteudo').load('presset.php', function(response, status) {
             if (status === "error") {
                 $('#conteudo').html('<p>Erro ao carregar Presset</p>');
                 return;
             }
-            // Chama a função que carrega os dados e preenche a tabela
             if (typeof carregar === "function") {
                 carregar();
             }
         });
-
-        // Eventos de clique dos botões
-        $('#btnEx').click(() => $('#armarioDropdown').slideToggle(200));
-        $('.dropdown-item').click(function() {
-            const page = $(this).data('page');
-            const match = page.match(/armario(\d+)\.php/);
-            const linha = match ? match[1] : null;
-            $('#conteudo').load(page, (response, status) => {
-                if (status === "error") {
-                    $('#conteudo').html('<p>Erro ao carregar conteúdo</p>');
-                    return;
-                }
-                if (linha) carregarArmariosPorLinhaSeparadoPorTurno(linha);
-            });
-        });
-        $('#btn2').click(() => $('#conteudo').load('relatorio.php'));
-        $('#btn4').click(() => $('#conteudo').load('cadastros.php'));
-        $('#btn3').click(() => {
-            $('#conteudo').load('presset.php', function(response, status) {
-                if (status === "error") {
-                    $('#conteudo').html('<p>Erro ao carregar Presset</p>');
-                    return;
-                }
-                if (typeof carregar === "function") {
-                    carregar();
-                }
-            });
-        });
-
     });
 
-    // -----------------------------
-    // Funções armários
-    // -----------------------------
-    async function carregarArmariosPorLinhaSeparadoPorTurno(linha) {
-        try {
-            const armarios = await (await fetch(`http://localhost:8080/armarios/linha/${linha}`)).json();
-            const ferramentas = await (await fetch('http://localhost:8080/ferramentas')).json();
+});
 
-            const turnosExibicao = {
-                manha: "Manhã",
-                tarde: "Tarde",
-                noite: "Noite"
-            };
+// -----------------------------
+// Funções armários
+// -----------------------------
+async function carregarArmariosPorLinhaSeparadoPorTurno(linha) {
+    try {
+        const armarios = await (await fetch(`http://localhost:8080/armarios/linha/${linha}`)).json();
+        const ferramentas = await (await fetch('http://localhost:8080/ferramentas')).json();
 
-            function removerAcentos(str) {
-                return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-            }
+        const turnosExibicao = {
+            manha: "Manhã",
+            tarde: "Tarde",
+            noite: "Noite"
+        };
 
-            const turnos = {
-                manha: armarios.filter(a => a.turno && removerAcentos(a.turno) === "manha"),
-                tarde: armarios.filter(a => a.turno && removerAcentos(a.turno) === "tarde"),
-                noite: armarios.filter(a => a.turno && removerAcentos(a.turno) === "noite")
-            };
+        function removerAcentos(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        }
 
-            let html = `<div class="armarios-titulo">Armários da Linha ${linha}</div>`;
+        const turnos = {
+            manha: armarios.filter(a => a.turno && removerAcentos(a.turno) === "manha"),
+            tarde: armarios.filter(a => a.turno && removerAcentos(a.turno) === "tarde"),
+            noite: armarios.filter(a => a.turno && removerAcentos(a.turno) === "noite")
+        };
 
-            for (const [chave, dados] of Object.entries(turnos)) {
-                html += `<div class="armario-turno">
-                        <h3>${turnosExibicao[chave]}</h3>
-                        <div style="display:flex; gap:8px; margin-bottom:8px;">
-                            <select class="presset-select"></select>
-                            <input class="presset-qty" type="number" value="1" min="1" style="width:90px" />
-                            <button class="btn-primary presset-add">ADICIONAR</button>
-                            <button class="btn-danger presset-remove">RETIRAR</button>
-                        </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Ferramenta</th>
-                                    <th>Qtd</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
+        let html = `<div class="armarios-titulo">Armários da Linha ${linha}</div>`;
 
-                dados.forEach(a => {
-                    if (a.ferramentas && a.ferramentas.length > 0) {
-                        a.ferramentas.forEach(f => {
-                            html += `<tr>
-                                    <td>${a.id}</td>
-                                    <td>${f.nome}</td>
-                                    <td>${f.qtd_estoque}</td>
-                                </tr>`;
-                        });
-                    } else {
-                        html += `<tr>
+        for (const [chave, dados] of Object.entries(turnos)) {
+            html += `<div class="armario-turno">
+                    <h3>${turnosExibicao[chave]}</h3>
+                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                        <select class="presset-select"></select>
+                        <input class="presset-qty" type="number" value="1" min="1" style="width:90px" />
+                        <button class="btn-primary presset-add">ADICIONAR</button>
+                        <button class="btn-danger presset-remove">RETIRAR</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Ferramenta</th>
+                                <th>Qtd</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            dados.forEach(a => {
+                if (a.ferramentas && a.ferramentas.length > 0) {
+                    a.ferramentas.forEach(f => {
+                        html += `<tr data-ferramenta="${f.id}">
                                 <td>${a.id}</td>
-                                <td>-</td>
-                                <td>-</td>
+                                <td>${f.nome}</td>
+                                <td class="qtd-armario">${f.qtd_estoque}</td>
                             </tr>`;
-                    }
-                });
-
-                html += `</tbody></table></div>`;
-            }
-
-            document.getElementById('conteudo').innerHTML = html;
-
-            // Preencher selects com ferramentas
-            document.querySelectorAll('.presset-select').forEach(select => {
-                ferramentas.forEach(f => {
-                    const option = document.createElement('option');
-                    option.value = f.id;
-                    option.textContent = `${f.nome} (Qtd: ${f.qtd_estoque})`;
-                    select.appendChild(option);
-                });
+                    });
+                } else {
+                    html += `<tr>
+                            <td>${a.id}</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>`;
+                }
             });
 
-            adicionarEventosTransferencia(linha);
-
-        } catch (error) {
-            console.error(error);
-            document.getElementById('conteudo').innerHTML = '<p>Erro ao carregar armários.</p>';
+            html += `</tbody></table></div>`;
         }
-    }
 
-    function adicionarEventosTransferencia(linha) {
-        document.querySelectorAll('.presset-add').forEach(btn => {
-            btn.onclick = async e => {
-                const container = e.target.closest('div');
-                const turno = e.target.closest('.armario-turno').querySelector('h3').textContent;
-                const select = container.querySelector('.presset-select');
-                const qtyInput = container.querySelector('.presset-qty');
-                const id = parseInt(select.value);
-                const qtd = parseInt(qtyInput.value);
-                const nome = select.options[select.selectedIndex].text.split(' (Qtd')[0];
-                if (!id || qtd <= 0) return alert('Selecione uma ferramenta e quantidade válida.');
-                await transferirParaArmario(id, nome, linha, turno, qtd);
-                await atualizarTudo(linha);
-            };
-        });
+        document.getElementById('conteudo').innerHTML = html;
 
-        document.querySelectorAll('.presset-remove').forEach(btn => {
-            btn.onclick = async e => {
-                const container = e.target.closest('div');
-                const turno = e.target.closest('.armario-turno').querySelector('h3').textContent;
-                const select = container.querySelector('.presset-select');
-                const qtyInput = container.querySelector('.presset-qty');
-                const id = parseInt(select.value);
-                const qtd = parseInt(qtyInput.value);
-                const nome = select.options[select.selectedIndex].text.split(' (Qtd')[0];
-                if (!id || qtd <= 0) return alert('Selecione uma ferramenta e quantidade válida.');
-                await transferirParaArmario(id, nome, linha, turno, -qtd);
-                await atualizarTudo(linha);
-            };
-        });
-    }
-
-    function formatarTurno(turno) {
-        return turno.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    }
-
-    async function atualizarTudo(linha) {
-        const ferramentas = await (await fetch('http://localhost:8080/ferramentas')).json();
+        // Preencher selects com ferramentas
         document.querySelectorAll('.presset-select').forEach(select => {
-            select.innerHTML = '';
             ferramentas.forEach(f => {
                 const option = document.createElement('option');
                 option.value = f.id;
@@ -175,30 +118,126 @@
                 select.appendChild(option);
             });
         });
-        await carregarArmariosPorLinhaSeparadoPorTurno(linha);
-    }
 
-    async function transferirParaArmario(id, nome, linha, turno, qtd) {
-        const dados = {
-            id_ferramenta: id,
-            nome: nome,
-            linha: linha,
-            turno: turno,
-            qtd_transferida: qtd
-        };
-        try {
-            const res = await fetch('http://localhost:8080/transferir_presset_para_armario', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(dados)
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.detail || 'Erro na transferência');
-            alert(data.mensagem || 'Transferência realizada com sucesso!');
-        } catch (err) {
-            console.error(err);
-            alert('Falha na transferência!\n' + err.message);
-        }
+        adicionarEventosTransferencia(linha);
+
+    } catch (error) {
+        console.error(error);
+        document.getElementById('conteudo').innerHTML = '<p>Erro ao carregar armários.</p>';
     }
+}
+
+// -----------------------------
+// Modal de erro
+// -----------------------------
+function mostrarErroModal(mensagem) {
+    const modal = document.getElementById('modalErro');
+    const msg = document.getElementById('msgErro');
+    msg.textContent = mensagem;
+    modal.style.display = 'flex';
+    document.getElementById('btnOkErro').onclick = () => {
+        modal.style.display = 'none';
+    };
+}
+
+// -----------------------------
+// Eventos de transferência
+// -----------------------------
+function adicionarEventosTransferencia(linha) {
+    // --- ADICIONAR ---
+    document.querySelectorAll('.presset-add').forEach(btn => {
+        btn.onclick = async e => {
+            const container = e.target.closest('div');
+            const turno = e.target.closest('.armario-turno').querySelector('h3').textContent;
+            const select = container.querySelector('.presset-select');
+            const qtyInput = container.querySelector('.presset-qty');
+            const id = parseInt(select.value);
+            const qtd = parseInt(qtyInput.value);
+            const nome = select.options[select.selectedIndex].text.split(' (Qtd')[0];
+
+            if (!id || qtd <= 0) return alert('Selecione uma ferramenta e quantidade válida.');
+
+            // ✅ Verifica quantidade disponível no Presset
+            const qtdDisponivel = parseInt(select.options[select.selectedIndex].text.match(/Qtd:\s*(\d+)/)[1]);
+            if (qtd > qtdDisponivel) {
+                mostrarErroModal(`Quantidade insuficiente no Presset!\nDisponível: ${qtdDisponivel}, solicitado: ${qtd}.`);
+                return;
+            }
+
+            await transferirParaArmario(id, nome, linha, turno, qtd);
+            await atualizarTudo(linha);
+        };
+    });
+
+    // --- RETIRAR ---
+    document.querySelectorAll('.presset-remove').forEach(btn => {
+        btn.onclick = async e => {
+            const container = e.target.closest('div');
+            const turno = e.target.closest('.armario-turno').querySelector('h3').textContent;
+            const select = container.querySelector('.presset-select');
+            const qtyInput = container.querySelector('.presset-qty');
+            const id = parseInt(select.value);
+            const qtd = parseInt(qtyInput.value);
+            const nome = select.options[select.selectedIndex].text.split(' (Qtd')[0];
+
+            if (!id || qtd <= 0) return alert('Selecione uma ferramenta e quantidade válida.');
+
+            // ✅ Verifica quantidade no ARMÁRIO
+            const linhaTurno = e.target.closest('.armario-turno');
+            const linhaFerramenta = linhaTurno.querySelector(`tr[data-ferramenta="${id}"]`);
+            if (!linhaFerramenta) {
+                mostrarErroModal(`A ferramenta "${nome}" não está presente neste armário.`);
+                return;
+            }
+
+            const qtdArmario = parseInt(linhaFerramenta.querySelector('.qtd-armario').textContent);
+            if (qtd > qtdArmario) {
+                mostrarErroModal(`Quantidade insuficiente no armário!\nDisponível: ${qtdArmario}, solicitado: ${qtd}.`);
+                return;
+            }
+
+            await transferirParaArmario(id, nome, linha, turno, -qtd);
+            await atualizarTudo(linha);
+        };
+    });
+}
+
+// -----------------------------
+// Atualizar e enviar dados
+// -----------------------------
+async function atualizarTudo(linha) {
+    const ferramentas = await (await fetch('http://localhost:8080/ferramentas')).json();
+    document.querySelectorAll('.presset-select').forEach(select => {
+        select.innerHTML = '';
+        ferramentas.forEach(f => {
+            const option = document.createElement('option');
+            option.value = f.id;
+            option.textContent = `${f.nome} (Qtd: ${f.qtd_estoque})`;
+            select.appendChild(option);
+        });
+    });
+    await carregarArmariosPorLinhaSeparadoPorTurno(linha);
+}
+
+async function transferirParaArmario(id, nome, linha, turno, qtd) {
+    const dados = {
+        id_ferramenta: id,
+        nome: nome,
+        linha: linha,
+        turno: turno,
+        qtd_transferida: qtd
+    };
+    try {
+        const res = await fetch('http://localhost:8080/transferir_presset_para_armario', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Erro na transferência');
+        alert(data.mensagem || 'Transferência realizada com sucesso!');
+    } catch (err) {
+        console.error(err);
+        alert('Falha na transferência!\n' + err.message);
+    }
+}
