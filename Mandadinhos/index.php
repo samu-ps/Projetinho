@@ -10,20 +10,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- 2-Editar a estrutura padrão: titúlo,css,icone -->
     <link rel="icon" href="./img/FAVICON.png" type="image/x-icon">
-    <link rel="stylesheet" href=".\css\estilos.css">
-    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href=".\css\index.css">
     <title>Login</title>
 </head>
 
 <body>
-    <!-- 3-Criar a DIV e o FORM - body{} -->
 
     <div class="header">
         <img src="./img/Streparava.png" alt="logo streparava">
     </div>
     
-    <!-- Criar formulário -->
-    <!-- 3.1 -3.2 inputs e button -->
     <section class="container">
         <div class="login-container">
             <div class="form-container">

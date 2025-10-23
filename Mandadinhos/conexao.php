@@ -17,16 +17,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['userP'], $_POST['pswP
     $nomeUser = $_POST['userP'];
     $senhaUser = md5($_POST['pswP']); // Criptografa a senha digitada
 
-    $query = $pdo->query("SELECT * FROM usuarios WHERE nomeUser='$login' AND senhaUser='$senha'");
-    $result = $query->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare("SELECT * FROM streparavadb.usuario WHERE login = :login AND senha = :senha");
+    $stmt->bindParam(':login', $nomeUser);
+    $stmt->bindParam(':senha', $senhaUser);
+    $stmt->execute();
 
-    if (count($result) > 0) {
-        $_SESSION['user'] = $usuario; // Salva o usuário na sessão
-        header("Location: principal.php");
-        exit;
-    } else {
-        echo 'Usuario ou senha estão incorretos.';
-        echo '<script>window.alert("Usuario ou senha incorreto.")</script>';
-        echo '<script>window.location="index.php"</script>';
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (count($result) > 0) {
+            $_SESSION['user'] = $nomeUser;
+            header("Location: principal.php");
+            exit;
+        } else {
+            echo '<script>alert("Usuario ou senha incorreto.")</script>';
+            echo '<script>window.location="index.php"</script>';
     }
 }
