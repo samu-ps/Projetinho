@@ -27,6 +27,7 @@ $(document).ready(function() {
     });
     $('#btn2').click(() => $('#conteudo').load('relatorio.php'));
     $('#btn4').click(() => $('#conteudo').load('cadastros.php'));
+    $('#btn10').click(() => $('#conteudo').load('sobre.php'));
     $('#btn3').click(() => {
         $('#conteudo').load('presset.php', function(response, status) {
             if (status === "error") {

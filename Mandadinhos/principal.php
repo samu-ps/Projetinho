@@ -1,9 +1,9 @@
 <?php
-session_start();
-if (!isset($_SESSION['user'])) {
-    header("Location: index.php");
-    exit();
-}
+// session_start();
+// if (!isset($_SESSION['user'])) {
+//     header("Location: index.php");
+//     exit();
+// }
 
 ?>
 
@@ -37,6 +37,7 @@ if (!isset($_SESSION['user'])) {
             </div>
             <button class="btnopcoes" id="btn2">Relatório</button>
             <button class="btnopcoes" id="btn4">Cadastrar Ferramenta</button>
+            <button class="btnopcoes" id="btn10">Sobre</button>
         </div>
         <div id="conteudo">
         </div>
