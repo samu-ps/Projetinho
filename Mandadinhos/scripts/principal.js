@@ -263,6 +263,3 @@ async function transferirParaArmario(id, nome, linha, turno, qtd) {
         mostrarErroModal('Falha na transferência!\n' + err.message);
     }
 }
-setTimeout(() => {
-    modal.style.display = "none";
-}, 3000);

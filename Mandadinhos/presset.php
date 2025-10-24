@@ -29,7 +29,7 @@
                             <th>Peça</th>
                             <th>Descrição</th>
                             <th>Un.</th>
-                            <th></th>
+                            <th>Deletar</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

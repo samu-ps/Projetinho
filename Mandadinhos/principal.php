@@ -37,7 +37,9 @@
             </div>
             <button class="btnopcoes" id="btn2">Relatório</button>
             <button class="btnopcoes" id="btn4">Cadastrar Ferramenta</button>
-            <button class="btnopcoes" id="btn10">Sobre</button>
+            <div class="sobre-baixo">
+                <button class="btnopcoes" id="btn10">Sobre</button>
+            </div>
         </div>
         <div id="conteudo">
         </div>

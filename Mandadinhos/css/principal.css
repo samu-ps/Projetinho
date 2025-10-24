@@ -450,3 +450,8 @@ th {
 .btn-primary:hover {
   background: #0056b3;
 }
+
+.sobre-baixo{
+    margin-top: auto; /* empurra para baixo */
+    text-align: center;
+}

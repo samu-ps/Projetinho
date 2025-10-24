@@ -36,7 +36,11 @@ function preencherTabela(dados) {
             <td>${c.nome}</td>
             <td>${c.descricao}</td>
             <td>${c.qtd_estoque}</td>
-            <td></td>
+            <td class="col-excluir">
+                <button class="btn-excluir" data-id="${c.id}" title="Excluir">
+                    <img src="./img/bin.png" alt="Excluir" style="width:18px;height:18px;">
+                </button>
+            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -97,29 +101,58 @@ function mostrarModal(mensagem) {
     setTimeout(() => modal.style.display = "none", 2000);
 }
 
+// Modal de confirmação de exclusão
+function mostrarModalConfirmacao(mensagem, onConfirm) {
+    const modal = document.getElementById("msgModal");
+    const content = document.getElementById("msgModalContent");
+    content.innerHTML = `
+        <p>${mensagem}</p>
+        <div style="margin-top:10px; display:flex; justify-content:center; gap:10px;">
+            <button id="confirmarExclusao" class="btn-primary">Sim</button>
+            <button id="cancelarExclusao" class="btn-danger">Não</button>
+        </div>
+    `;
+    modal.style.display = "flex";
+
+    document.getElementById("confirmarExclusao").onclick = () => {
+        onConfirm();
+        modal.style.display = "none";
+    };
+
+    document.getElementById("cancelarExclusao").onclick = () => {
+        modal.style.display = "none";
+    };
+
+    // Fechar clicando fora do conteúdo
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.style.display = "none";
+    };
+}
+
 // -----------------------------
 // Eventos de exclusão
 // -----------------------------
 function adicionarEventosExcluir() {
     document.querySelectorAll(".btn-excluir").forEach(btn => {
-        btn.onclick = async () => {
+        btn.onclick = () => {
             const id = btn.getAttribute("data-id");
-            if (!confirm("Tem certeza que deseja excluir esta ferramenta?")) return;
-            try {
-                const res = await fetch(`http://localhost:8080/ferramentas/${id}`, { method: "DELETE" });
-                if (!res.ok) throw new Error("Falha ao excluir ferramenta.");
+            mostrarModalConfirmacao("Tem certeza que deseja excluir esta ferramenta?", async () => {
+                try {
+                    const res = await fetch(`http://localhost:8080/ferramentas/${id}`, { method: "DELETE" });
+                    if (!res.ok) throw new Error("Falha ao excluir ferramenta.");
 
-                window.dadosPresset = window.dadosPresset.filter(f => f.id != id);
-                preencherTabela(window.dadosPresset);
-                mostrarModal("Ferramenta excluída com sucesso!");
-            } catch (err) {
-                console.error(err);
-                mostrarModal("Erro ao excluir ferramenta.");
-            }
+                    // Atualiza array local e tabela
+                    window.dadosPresset = window.dadosPresset.filter(f => f.id != id);
+                    preencherTabela(window.dadosPresset);
+                    mostrarModal("Ferramenta excluída com sucesso!");
+                } catch (err) {
+                    console.error(err);
+                    mostrarModal("Erro ao excluir ferramenta.");
+                }
+            });
         };
     });
 }
-
 // -----------------------------
 // Delegação de eventos para adicionar/retirar
 // -----------------------------
