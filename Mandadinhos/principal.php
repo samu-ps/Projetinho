@@ -49,6 +49,13 @@
             <button id="btnOkErro" class="btn-primary" style="margin-top:10px;">OK</button>
         </div>
     </div>
+    <div id="msgModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3 id="msgModalTitulo"></h3>
+            <p id="msgModalTexto"></p>
+            <button id="msgModalFechar" class="btn-primary">OK</button>
+        </div>
+    </div>
 </body>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

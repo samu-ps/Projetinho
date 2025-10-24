@@ -1,0 +1,3 @@
+- [x] Update principal.css to position header fixed at top
+- [x] Update sidebar (.opcoes) to be fixed on left below header
+- [x] Update content (#conteudo) to occupy remaining space with vertical scroll

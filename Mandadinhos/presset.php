@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Presset</title>
-    <link rel="stylesheet" href="./css/principal.css">
-    <link rel="stylesheet" href="./css/presset.css">
+    <link rel="stylesheet" href="css/principal.css">
+    <link rel="stylesheet" href="css/presset.css">
 
 </head>
 
@@ -29,7 +29,7 @@
                             <th>Peça</th>
                             <th>Descrição</th>
                             <th>Un.</th>
-                            <th>[]</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -54,8 +54,10 @@
             </aside>
         </div>
     </div>
-
-    <script src="./scripts/presset.js"></script>
+    <div id="msgModal" class="modal" style="display:none;">
+        <div class="modal-content" id="msgModalContent"></div>
+    </div>
+    <script src="scripts/presset.js"></script>
 </body>
 
 </html>

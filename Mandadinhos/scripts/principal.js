@@ -1,7 +1,7 @@
-$(document).ready(function() {
+$(document).ready(function () {
 
     // --- CARREGAR PRESSET AO INICIAR ---
-    $('#conteudo').load('presset.php', function(response, status) {
+    $('#conteudo').load('presset.php', function (response, status) {
         if (status === "error") {
             $('#conteudo').html('<p>Erro ao carregar Presset</p>');
             return;
@@ -13,7 +13,7 @@ $(document).ready(function() {
 
     // Eventos de clique dos botões
     $('#btnEx').click(() => $('#armarioDropdown').slideToggle(200));
-    $('.dropdown-item').click(function() {
+    $('.dropdown-item').click(function () {
         const page = $(this).data('page');
         const match = page.match(/armario(\d+)\.php/);
         const linha = match ? match[1] : null;
@@ -29,7 +29,7 @@ $(document).ready(function() {
     $('#btn4').click(() => $('#conteudo').load('cadastros.php'));
     $('#btn10').click(() => $('#conteudo').load('sobre.php'));
     $('#btn3').click(() => {
-        $('#conteudo').load('presset.php', function(response, status) {
+        $('#conteudo').load('presset.php', function (response, status) {
             if (status === "error") {
                 $('#conteudo').html('<p>Erro ao carregar Presset</p>');
                 return;
@@ -129,7 +129,7 @@ async function carregarArmariosPorLinhaSeparadoPorTurno(linha) {
 }
 
 // -----------------------------
-// Modal de erro
+// Modais
 // -----------------------------
 function mostrarErroModal(mensagem) {
     const modal = document.getElementById('modalErro');
@@ -139,6 +139,21 @@ function mostrarErroModal(mensagem) {
     document.getElementById('btnOkErro').onclick = () => {
         modal.style.display = 'none';
     };
+}
+
+// ✅ Modal de sucesso/info
+function mostrarMensagem(titulo, texto) {
+    const modal = document.getElementById("msgModal");
+    const tituloElem = document.getElementById("msgModalTitulo");
+    const textoElem = document.getElementById("msgModalTexto");
+    const btnFechar = document.getElementById("msgModalFechar");
+
+    tituloElem.textContent = titulo;
+    textoElem.textContent = texto;
+    modal.style.display = "flex";
+
+    btnFechar.onclick = () => modal.style.display = "none";
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
 }
 
 // -----------------------------
@@ -156,9 +171,11 @@ function adicionarEventosTransferencia(linha) {
             const qtd = parseInt(qtyInput.value);
             const nome = select.options[select.selectedIndex].text.split(' (Qtd')[0];
 
-            if (!id || qtd <= 0) return alert('Selecione uma ferramenta e quantidade válida.');
+            if (!id || qtd <= 0) {
+                mostrarErroModal('Selecione uma ferramenta e quantidade válida.');
+                return;
+            }
 
-            // ✅ Verifica quantidade disponível no Presset
             const qtdDisponivel = parseInt(select.options[select.selectedIndex].text.match(/Qtd:\s*(\d+)/)[1]);
             if (qtd > qtdDisponivel) {
                 mostrarErroModal(`Quantidade insuficiente no Presset!\nDisponível: ${qtdDisponivel}, solicitado: ${qtd}.`);
@@ -181,9 +198,11 @@ function adicionarEventosTransferencia(linha) {
             const qtd = parseInt(qtyInput.value);
             const nome = select.options[select.selectedIndex].text.split(' (Qtd')[0];
 
-            if (!id || qtd <= 0) return alert('Selecione uma ferramenta e quantidade válida.');
+            if (!id || qtd <= 0) {
+                mostrarErroModal('Selecione uma ferramenta e quantidade válida.');
+                return;
+            }
 
-            // ✅ Verifica quantidade no ARMÁRIO
             const linhaTurno = e.target.closest('.armario-turno');
             const linhaFerramenta = linhaTurno.querySelector(`tr[data-ferramenta="${id}"]`);
             if (!linhaFerramenta) {
@@ -236,9 +255,14 @@ async function transferirParaArmario(id, nome, linha, turno, qtd) {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Erro na transferência');
-        alert(data.mensagem || 'Transferência realizada com sucesso!');
+
+        // ✅ Usa modal de sucesso
+        mostrarMensagem("Sucesso", data.mensagem || 'Transferência realizada com sucesso!');
     } catch (err) {
         console.error(err);
-        alert('Falha na transferência!\n' + err.message);
+        mostrarErroModal('Falha na transferência!\n' + err.message);
     }
 }
+setTimeout(() => {
+    modal.style.display = "none";
+}, 3000);

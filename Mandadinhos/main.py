@@ -236,12 +236,13 @@ def transferir_presset_para_armario(dados: FerramentaTransfer):
     existente = cursor.fetchone()
 
     if existente:
-        # Atualiza quantidade e nome (caso tenha mudado)
+        # Atualiza quantidade (pode ser positiva ou negativa)
+        nova_qtd = max(0, int(existente["qtd_estoque"]) + dados.qtd_transferida)
         cursor.execute("""
             UPDATE armario
-            SET qtd_estoque = qtd_estoque + %s, nome = %s
+            SET qtd_estoque = %s, nome = %s
             WHERE id = %s
-        """, (dados.qtd_transferida, dados.nome, existente["id"]))
+        """, (nova_qtd, dados.nome, existente["id"]))
     else:
         # Cria novo registro no armário
         cursor.execute("""
@@ -249,19 +250,28 @@ def transferir_presset_para_armario(dados: FerramentaTransfer):
             VALUES (%s, %s, %s, %s, %s)
         """, (dados.id_ferramenta, dados.nome, dados.linha, dados.turno, dados.qtd_transferida))
 
-    # 3️⃣ Atualizar estoque da tabela ferramentas
-    cursor.execute("""
-        UPDATE ferramentas
-        SET qtd_estoque = qtd_estoque - %s
-        WHERE id = %s
-    """, (dados.qtd_transferida, dados.id_ferramenta))
+    # 3️⃣ Atualizar estoque da tabela ferramentas APENAS se for saída (transferência positiva)
+    if dados.qtd_transferida > 0:
+        cursor.execute("""
+            UPDATE ferramentas
+            SET qtd_estoque = qtd_estoque - %s
+            WHERE id = %s
+        """, (dados.qtd_transferida, dados.id_ferramenta))
+        # Evita valores negativos
+        cursor.execute("""
+            UPDATE ferramentas
+            SET qtd_estoque = 0
+            WHERE qtd_estoque < 0
+        """)
 
     conn.commit()
     cursor.close()
     conn.close()
 
+    # Mensagem amigável
+    acao = "adicionada" if dados.qtd_transferida > 0 else "retirada"
     return {
-        "mensagem": f"Ferramenta '{dados.nome}' transferida com sucesso para o armário da linha {dados.linha} ({dados.turno})!"
+        "mensagem": f"Ferramenta '{dados.nome}' {acao} com sucesso no armário da linha {dados.linha} ({dados.turno})."
     }
 # -----------------------------
 # Rotas de Relatórios (arquivo JSON)
