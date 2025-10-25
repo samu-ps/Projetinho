@@ -24,7 +24,6 @@
                     <button type="submit" class="btn btn-danger">Enviar</button>
                 </div>
             </form>
-            <div id="msgFerramentas"></div>
         </div>
     </div>
 

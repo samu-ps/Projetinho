@@ -101,6 +101,7 @@
         <ul>
             <li>Alunos do 2º Módulo de Informática (2025)</li>
             <li>Alunos do 3º Módulo de Informática (2025)</li>
+            <li>Alunos do 4º Módulo de Administração (2025)</li>
         </ul>
     </section>
 

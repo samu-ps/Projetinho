@@ -50,7 +50,6 @@ body{
     place-items: center;   /* centraliza horizontal e verticalmente */
     min-height: 80vh;
     margin: 0;
-    background: #f2f2f2;
 }
 
 /* Form card styling */
